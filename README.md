@@ -8,6 +8,12 @@ A public-site-ready USDT batch sender for Ethereum mainnet. **One shared contrac
 
 The frontend follows the selected MetaMask account, shows that sender in payment review, and isolates history and repeat-payment checks by wallet and contract. Changing accounts clears the prepared review and refreshes balances and allowances. Ledger accounts work through MetaMask; hardware signing is not required for other wallet types.
 
+## Live shared contract
+
+Ethereum mainnet: [0x8cAbbD6D61d4D8A6A1910De61aAe8e5A4a75b861](https://etherscan.io/address/0x8cAbbD6D61d4D8A6A1910De61aAe8e5A4a75b861). Deployment confirmed in block 25962930; the runtime and creation bytecode match the included build. Details are in `deployments/mainnet.json`.
+
+The site and packaged app use this shared contract by default. **Visitors and other wallet holders do not deploy anything.** They connect, approve their own USDT, and send their own batch. The deployer has no privileged access.
+
 ## Run or host your own site
 
 ```sh
@@ -17,11 +23,9 @@ npm run build
 
 Serve the contents of **`dist/client/`** from any static HTTPS host at the domain root. There is no application server, database, analytics, or private API key. MetaMask provides Ethereum RPC and signing. HTTPS (or localhost) is required for wallet and transaction-locking browser APIs.
 
-1. Open the app and connect the account that will pay the one-time deployment gas fee.
-2. Under **Choose the shared contract**, select **Review deployment cost**, inspect the fee, and continue to MetaMask. Sign there. No ETH is transferred to the contract; only gas is paid.
-3. The app verifies the confirmed deployed bytecode and saves the shared address. Interrupted requests remain recoverable; check or recover an unfinished deployment before trying again.
-4. Click **Download settings for your public site**. Put the resulting **`batch-config.json`** at the root of your static site, replacing the empty file supplied with the build. No rebuild is needed.
-5. Visitors now see the configured contract. They connect their own wallet, enter recipients, approve the batch total, review, and send. They do not deploy a contract and do not need your permission.
+The default settings already select the live shared contract above. Upload the built files and visitors can connect their own MetaMask account immediately.
+
+If you explicitly want a separate deployment for a different site, start with an empty `contract` in `config.local.json` and `public/batch-config.json` and rebuild. The setup screen provides **Review deployment cost**, wallet signing, confirmation/recovery, and **Download settings for your public site**. Put its resulting `batch-config.json` at the site root. A separate deployment is optional and is never required per visitor.
 
 You can also enter an existing deployment of the exact included `SharedUSDTBatch` build under **Shared contract settings**, use `?contract=0x…` in a link, or set the default `contract` in ignored `config.local.json` before building. The app verifies the complete runtime hash; an arbitrary contract address cannot bypass verification.
 
