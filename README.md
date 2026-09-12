@@ -27,7 +27,7 @@ The default settings already select the live shared contract above. Upload the b
 
 If you explicitly want a separate deployment for a different site, start with an empty `contract` in `config.local.json` and `public/batch-config.json` and rebuild. The setup screen provides **Review deployment cost**, wallet signing, confirmation/recovery, and **Download settings for your public site**. Put its resulting `batch-config.json` at the site root. A separate deployment is optional and is never required per visitor.
 
-You can also enter an existing deployment of the exact included `SharedUSDTBatch` build under **Shared contract settings**, use `?contract=0x…` in a link, or set the default `contract` in ignored `config.local.json` before building. The app verifies the complete runtime hash; an arbitrary contract address cannot bypass verification.
+Setup controls are omitted from the configured public app. In an unconfigured build you can enter an existing deployment of the exact included `SharedUSDTBatch` build under **Shared contract settings**, use `?contract=0x…` in a link, or set the default `contract` in ignored `config.local.json` before building. The app verifies the complete runtime hash; an arbitrary contract address cannot bypass verification.
 
 ## Contract behavior
 
