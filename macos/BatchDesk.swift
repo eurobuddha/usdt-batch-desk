@@ -102,7 +102,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         item.submenu = submenu
         NSApplication.shared.mainMenu = menu
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 420, height: 255), styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
-        window.title = "USDT Batch Desk"
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        window.title = "USDT Batch Desk \(version)"
         window.isReleasedWhenClosed = false
         window.center()
         let title = NSTextField(labelWithString: "Your batch desk. On your Mac.")

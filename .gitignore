@@ -58,3 +58,8 @@ chain/node_modules
 chain/artifacts/
 chain/cache/
 chain/exports/
+
+# Local project organisation
+/archive/
+/site-publish/
+/releases/

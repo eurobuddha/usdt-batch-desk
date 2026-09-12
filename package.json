@@ -1,6 +1,6 @@
 {
   "name": "usdt-batch-desk",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -17,7 +17,8 @@
     "prebuild": "node scripts/prepare-config.mjs",
     "pretest": "node scripts/prepare-config.mjs",
     "pretypecheck": "node scripts/prepare-config.mjs",
-    "package:local": "npm run build && node scripts/package-local.mjs"
+    "package:local": "npm run build && node scripts/package-local.mjs",
+    "package:mac": "npm run build && bash scripts/build-macos.sh"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

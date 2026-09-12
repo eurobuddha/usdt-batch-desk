@@ -41,10 +41,12 @@ Setup controls are omitted from the configured public app. In an unconfigured bu
 ## Native Mac app
 
 ```sh
-bash scripts/build-macos.sh
+npm run package:mac
 ```
 
-Open `release/USDT Batch Desk.dmg`, drag the app into Applications, and launch it. macOS 13+; Apple Silicon and Intel; Chrome with MetaMask. It bundles the same interface, runs without Node/Python/Terminal, and opens `http://127.0.0.1:38762/`. Version 2 uses its own local origin so it cannot silently reuse the old owner-only server. Old version history stays in its original browser origin.
+Open `releases/2.0.1/USDT Batch Desk-2.0.1-universal.dmg`, drag the app into Applications, and launch it. macOS 13+; Apple Silicon and Intel; Chrome with MetaMask. It bundles the same interface, runs without Node/Python/Terminal, and opens `http://127.0.0.1:38762/`. Version 2 uses its own local origin so it cannot silently reuse the old owner-only server. Old version history stays in its original browser origin.
+
+The installer filename, versioned release directory, app metadata, and launcher title use the version in `package.json`. The build refuses to overwrite an existing release; increment the version for the next release. `SHA256SUMS.txt` accompanies each installer.
 
 The installer is ad-hoc signed, not Apple-notarized. Signing for public distribution requires your own Developer ID and notarization. The optional Python fallback is available through `npm run package:local`.
 
