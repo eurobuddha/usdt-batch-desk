@@ -35,11 +35,11 @@ export default function ContractSetup({injected,account,contract,busy,onSelect,o
   function downloadSettings(){const blob=new Blob([JSON.stringify({contract},null,2)+'\n'],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='batch-config.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
   return <details className="contract-setup paper" open={!contract}>
     <summary>{contract?'Shared contract settings':'Choose the shared contract'}<span>{contract?'Use the same address for every wallet':'One deployment · Any wallet · No owner permissions'}</span></summary>
-    <div className="setup-body"><p>Everyone uses the same contract. Each connected wallet approves and spends only its own USDT.</p>
+    <div className="setup-body"><p>Everyone uses the same contract. Each connected wallet uses only its own ETH or approved ERC-20 tokens.</p>
       {!account&&<button className="quiet" disabled={disabled} onClick={onConnect}>Connect MetaMask</button>}
       <label className="small-label" htmlFor="shared-contract">EXISTING SHARED CONTRACT</label>
       <div className="setup-row"><input id="shared-contract" className="address-input" value={address} onChange={e=>setAddress(e.target.value)} placeholder="0x… shared contract address"/><button className="quiet" disabled={disabled||!account||!address} onClick={()=>run(()=>onSelect(address))}>Verify & use</button></div>
-      <p className="muted">The app verifies the complete deployed bytecode before approving any spending. The earlier owner-only contract cannot be used here.</p>
+      <p className="muted">The app verifies the complete deployed bytecode before approving any spending. Earlier owner-only and USDT-only contracts cannot be used here.</p>
       {contract&&<button className="text-button" onClick={downloadSettings}>Download settings for your public site</button>}
       {!contract&&<div className="setup-deploy"><h3>Setting up your own site?</h3><p>Deploy the shared contract once. Your visitors will only connect, approve, and send; they do not deploy contracts.</p>
         <button className="quiet" disabled={disabled||!account||pending||intent?.status==='confirmed'} onClick={()=>run(async()=>{if(injected)setPlan(await prepareDeployment(injected))})}>Review deployment cost</button>

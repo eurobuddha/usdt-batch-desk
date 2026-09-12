@@ -1,6 +1,6 @@
 import type { Action, Injected } from './wallet';
 export const HISTORY_KEY='batch-desk:v2:transactions';
-export type RecordEntry={id:string;title:string;kind:Action;fingerprint:string;total:string;count:number;status:'signing'|'pending'|'confirmed'|'failed'|'rejected'|'unknown';hash?:string;created:string;data:string;to:string;nonce:number;from:string;contract:string};
+export type RecordEntry={id:string;title:string;kind:Action;fingerprint:string;total:string;count:number;status:'signing'|'pending'|'confirmed'|'failed'|'rejected'|'unknown';hash?:string;created:string;data:string;to:string;nonce:number;from:string;contract:string;asset?:{address:string;symbol:string;decimals:number};value?:string};
 export function loadHistory():RecordEntry[]{
   const raw=localStorage.getItem(HISTORY_KEY),legacy=raw?JSON.parse(raw):[];
   if(!Array.isArray(legacy))throw new Error('Could not read transaction history. Keep it intact and check MetaMask activity.');
@@ -20,6 +20,6 @@ export async function reconcile(injected:Injected,entry:RecordEntry, requireNonc
   if(BigInt(await injected.request({method:'eth_chainId'}))!==1n) throw new Error('Network changed while checking the receipt.');
   if(requireNonce && Number(BigInt(tx.nonce))!==entry.nonce) return {...entry,status:'unknown'};
   if(requireNonce && tx.from?.toLowerCase()===entry.from.toLowerCase() && tx.to?.toLowerCase()===entry.from.toLowerCase() && tx.input==='0x' && BigInt(tx.value)===0n && BigInt(receipt.status)===1n) return {...entry,status:'rejected'};
-  const matches=tx.from?.toLowerCase()===entry.from.toLowerCase()&&tx.to?.toLowerCase()===entry.to.toLowerCase()&&tx.input?.toLowerCase()===entry.data.toLowerCase()&&BigInt(tx.value)===0n;
+  const matches=tx.from?.toLowerCase()===entry.from.toLowerCase()&&tx.to?.toLowerCase()===entry.to.toLowerCase()&&tx.input?.toLowerCase()===entry.data.toLowerCase()&&BigInt(tx.value)===BigInt(entry.value??'0');
   return {...entry,status:!matches?'unknown':BigInt(receipt.status)===1n?'confirmed':'failed'};
 }

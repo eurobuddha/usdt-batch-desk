@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent / 'app'
 HOST = '127.0.0.1'
 PORT = 38762
 URL = f'http://{HOST}:{PORT}/'
-APP_ID = 'shared-usdt-batch-desk-v2'
+APP_ID = 'batch-desk-v3'
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):

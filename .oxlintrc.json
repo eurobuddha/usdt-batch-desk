@@ -29,7 +29,12 @@
     "build/**",
     "dist/**",
     "coverage/**",
-    "next-env.d.ts"
+    "next-env.d.ts",
+    "archive/**",
+    "work/**",
+    "site-publish/**",
+    "releases/**",
+    "chain/**"
   ],
   "rules": {
     "no-array-constructor": "error",

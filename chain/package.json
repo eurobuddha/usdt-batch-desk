@@ -5,7 +5,8 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "export": "hardhat run scripts/export-shared.js"
+    "export": "hardhat run scripts/export-universal.js",
+    "pretest": "cd .. && node tests/compile.cjs"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "2.1.0",

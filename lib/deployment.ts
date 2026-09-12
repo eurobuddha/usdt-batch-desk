@@ -2,7 +2,7 @@ import { BrowserProvider, formatEther, getCreateAddress, toQuantity } from 'ethe
 import build from './contract-build.json';
 import { connectedAccount, checkSession, verifyContract, type Injected } from './wallet';
 
-export const DEPLOY_KEY='batch-desk:v2:deployment';
+export const DEPLOY_KEY='batch-desk:v3:deployment';
 export type DeploymentPlan={account:string;nonce:number;expected:string;gas:string;fee:string};
 export type DeploymentIntent=DeploymentPlan & {hash?:string;contract?:string;status:'signing'|'pending'|'unknown'|'rejected'|'failed'|'confirmed'};
 export async function prepareDeployment(injected:Injected):Promise<DeploymentPlan>{

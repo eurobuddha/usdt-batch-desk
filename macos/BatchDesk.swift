@@ -65,7 +65,7 @@ final class LocalServer {
               !path.contains("\0"), !path.contains("\\"),
               !path.split(separator: "/").contains("..") else { reply(connection, status: 403); return }
         if path == "/__batch_desk_health" {
-            reply(connection, status: 200, body: Data("{\"app\":\"shared-usdt-batch-desk-v2\",\"native\":true}".utf8), mime: "application/json", head: method == "HEAD")
+            reply(connection, status: 200, body: Data("{\"app\":\"batch-desk-v3\",\"native\":true}".utf8), mime: "application/json", head: method == "HEAD")
             return
         }
         let relative = path == "/" ? "index.html" : String(path.dropFirst())
@@ -98,12 +98,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let item = NSMenuItem()
         menu.addItem(item)
         let submenu = NSMenu()
-        submenu.addItem(withTitle: "Quit USDT Batch Desk", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        submenu.addItem(withTitle: "Quit Batch Desk", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         item.submenu = submenu
         NSApplication.shared.mainMenu = menu
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 420, height: 255), styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
-        window.title = "USDT Batch Desk \(version)"
+        window.title = "Batch Desk \(version)"
         window.isReleasedWhenClosed = false
         window.center()
         let title = NSTextField(labelWithString: "Your batch desk. On your Mac.")
@@ -152,7 +152,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let json = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
             DispatchQueue.main.async {
                 guard let self else { return }
-                if json?["app"] as? String == "shared-usdt-batch-desk-v2" {
+                if json?["app"] as? String == "batch-desk-v3" {
                     self.ready = true
                     self.status.stringValue = "An earlier Batch Desk server is already running. Using that session."
                     self.openChrome()

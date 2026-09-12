@@ -37,6 +37,12 @@
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "archive",
+    "work",
+    "site-publish",
+    "releases",
+    "dist",
+    "chain"
   ]
 }
