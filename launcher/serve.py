@@ -12,9 +12,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent / 'app'
 HOST = '127.0.0.1'
-PORT = 38761
+PORT = 38762
 URL = f'http://{HOST}:{PORT}/'
-APP_ID = 'personal-usdt-batch-desk-v1'
+APP_ID = 'shared-usdt-batch-desk-v2'
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):

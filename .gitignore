@@ -53,3 +53,8 @@ release/
 __pycache__/
 *.app/
 *.dmg
+
+chain/node_modules
+chain/artifacts/
+chain/cache/
+chain/exports/

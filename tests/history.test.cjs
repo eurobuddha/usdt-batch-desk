@@ -1,6 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {reconcile,unresolved}=require('../.test-build/history.js');const {OWNER,CONTRACT}=require('../.test-build/batch.js');
-const entry={id:'one',hash:'0x123',status:'pending',data:'0x1234',to:CONTRACT};
+const {reconcile,unresolved}=require('../.test-build/history.js');const OWNER='0x3333333333333333333333333333333333333333',CONTRACT='0x4444444444444444444444444444444444444444';
+const entry={id:'one',hash:'0x123',status:'pending',data:'0x1234',to:CONTRACT,from:OWNER,contract:CONTRACT};
 function provider(receipt,tx){return {request:async({method})=>method==='eth_chainId'?'0x1':method==='eth_getTransactionReceipt'?receipt:tx}}
 test('missing receipt stays pending and blocks another request',async()=>{const r=await reconcile(provider(null,null),entry);assert.equal(r.status,'pending');assert.equal(unresolved([r]),true)});
 test('successful matching transaction confirms',async()=>{const tx={from:OWNER,to:CONTRACT,input:'0x1234',value:'0x0'};assert.equal((await reconcile(provider({status:'0x1'},tx),entry)).status,'confirmed')});
@@ -9,3 +9,8 @@ test('modified wallet transaction remains unknown and blocks retry',async()=>{co
 test('unfinished signing intent survives reload as unresolved',()=>assert.equal(unresolved([{status:'signing'}]),true));
 test('recovery rejects an old identical payment with a different nonce',async()=>{const tx={from:OWNER,to:CONTRACT,input:'0x1234',value:'0x0',nonce:'0x10'};assert.equal((await reconcile(provider({status:'0x1'},tx),{...entry,nonce:17},true)).status,'unknown')});
 test('recovery recognizes a confirmed cancellation at the same nonce',async()=>{const tx={from:OWNER,to:OWNER,input:'0x',value:'0x0',nonce:'0x11'};assert.equal((await reconcile(provider({status:'0x1'},tx),{...entry,nonce:17},true)).status,'rejected')});
+
+const {forWallet}=require('../.test-build/history.js');
+test('another wallet cannot satisfy a pending payment receipt',async()=>{const tx={from:'0x5555555555555555555555555555555555555555',to:CONTRACT,input:'0x1234',value:'0x0'};assert.equal((await reconcile(provider({status:'0x1'},tx),entry)).status,'unknown')});
+test('pending and confirmed histories are isolated by wallet and contract',()=>{const other={...entry,id:'two',from:'0x5555555555555555555555555555555555555555'};assert.deepEqual(forWallet([entry,other],OWNER,CONTRACT),[entry]);assert.deepEqual(forWallet([entry],OWNER,other.from),[])});
+test('separate wallet records cannot overwrite one another in storage',()=>{const {loadHistory,saveRecord}=require('../.test-build/history.js');const data=new Map();global.localStorage={get length(){return data.size},key:i=>[...data.keys()][i]??null,getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v)};const a={...entry,id:'a',created:'2026-01-01',status:'signing'},b={...entry,id:'b',created:'2026-01-02',from:'0x5555555555555555555555555555555555555555'};saveRecord(a);saveRecord(b);saveRecord({...b,status:'confirmed'});assert.equal(loadHistory().length,2);assert.equal(loadHistory().find(x=>x.id==='a').status,'signing');delete global.localStorage});

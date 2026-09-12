@@ -65,7 +65,7 @@ final class LocalServer {
               !path.contains("\0"), !path.contains("\\"),
               !path.split(separator: "/").contains("..") else { reply(connection, status: 403); return }
         if path == "/__batch_desk_health" {
-            reply(connection, status: 200, body: Data("{\"app\":\"personal-usdt-batch-desk-v1\",\"native\":true}".utf8), mime: "application/json", head: method == "HEAD")
+            reply(connection, status: 200, body: Data("{\"app\":\"shared-usdt-batch-desk-v2\",\"native\":true}".utf8), mime: "application/json", head: method == "HEAD")
             return
         }
         let relative = path == "/" ? "index.html" : String(path.dropFirst())
@@ -90,7 +90,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var server: LocalServer?
     var window: NSWindow!
     let status = NSTextField(wrappingLabelWithString: "Starting your local interface…")
-    let url = URL(string: "http://127.0.0.1:38761/")!
+    let url = URL(string: "http://127.0.0.1:38762/")!
     var ready = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -107,7 +107,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.center()
         let title = NSTextField(labelWithString: "Your batch desk. On your Mac.")
         title.font = .systemFont(ofSize: 22, weight: .semibold)
-        let detail = NSTextField(wrappingLabelWithString: "Use Chrome with MetaMask to review payments and sign with your Ledger.")
+        let detail = NSTextField(wrappingLabelWithString: "Use Chrome with MetaMask to review payments and sign from the connected wallet.")
         detail.textColor = .secondaryLabelColor
         status.textColor = .secondaryLabelColor
         let button = NSButton(title: "Open in Chrome", target: self, action: #selector(openChrome))
@@ -131,7 +131,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                   FileManager.default.fileExists(atPath: root.appendingPathComponent("index.html").path) else {
                 status.stringValue = "The bundled interface is missing. Reinstall the app."; return
             }
-            server = try LocalServer(root: root, port: 38761)
+            server = try LocalServer(root: root, port: 38762)
             server?.onReady = { [weak self] in
                 self?.ready = true
                 self?.status.stringValue = "Running locally · Quit this app to stop the server."
@@ -151,12 +151,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let json = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
             DispatchQueue.main.async {
                 guard let self else { return }
-                if json?["app"] as? String == "personal-usdt-batch-desk-v1" {
+                if json?["app"] as? String == "shared-usdt-batch-desk-v2" {
                     self.ready = true
                     self.status.stringValue = "An earlier Batch Desk server is already running. Using that session."
                     self.openChrome()
                 } else {
-                    self.status.stringValue = "Port 38761 is occupied. Close the earlier local launcher, then reopen this app."
+                    self.status.stringValue = "Port 38762 is occupied. Close the earlier local launcher, then reopen this app."
                 }
             }
         }.resume()
@@ -185,7 +185,7 @@ if arguments.contains("--serve-only") {
     guard let index = arguments.firstIndex(of: "--assets"), arguments.count > index + 1 else { exit(2) }
     let port: UInt16
     if let index = arguments.firstIndex(of: "--port"), arguments.count > index + 1, let value = UInt16(arguments[index + 1]), value > 0 { port = value }
-    else { port = 38761 }
+    else { port = 38762 }
     let server = try LocalServer(root: URL(fileURLWithPath: arguments[index + 1]), port: port)
     server.onReady = { print("READY \(port)"); fflush(stdout) }
     server.onFailure = { error in fputs("\(error)\n", stderr); exit(1) }

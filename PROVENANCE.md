@@ -1,9 +1,9 @@
 # Provenance
 
-The frontend directly reuses its companion PersonalUSDTBatch ABI and ethers 6.16.0 integer amount/transaction encoding functions. The USDT allowance decision sequence preserves the established zero-first-reset and exact-approval behavior from an existing bridge implementation. The new batch editor replaces the bridge-specific deposit UI.
+Version 2 minimally adapts the tested PersonalUSDTBatch transfer loop to remove owner restrictions. It preserves OpenZeppelin 5.4.0 SafeERC20 and ReentrancyGuard, exact received-amount checks, atomicity and recipient validation. It follows the caller-funded structure of Disperse's `disperseTokenSimple` while retaining compatibility with USDT's missing return value. No upstream Solidity implementation was copied into the new contract.
 
-The earlier Disperse interface was inspected as a reference. It used Riot 3, ethers 4, a different contract ABI, and unlimited approvals; its full implementation was not copied.
+Inspected references include Disperse's original Solidity contract and Brownie tests, its Riot transaction flow, and its newer Wagmi account/allowance and deployment components. Those complete frontend components use different framework dependencies and contract APIs, so this app reuses its existing ethers 6.16.0 frontend, validation, allowance sequence and transaction recovery instead. The new adaptations make the sender dynamic and carry wallet/contract identity through review and history.
 
-Interface primitives come from the Shadcn/Base UI catalog supplied by the Sites starter. The public build removes all private Sites project metadata and the hosting plugin integration. It exports a local static app using Vinext; hosting dependencies remaining in the lockfile are not required by the local serving process.
+UI primitives originate from the Shadcn/Base UI starter. Private hosting metadata is excluded. The site exports static files and has no hosting-provider requirement.
 
-Solidity source uses OpenZeppelin Contracts 5.4.0. The standalone source preserves its upstream MIT notices, and the OpenZeppelin license is included alongside it. This public snapshot contains no prior private Git history or deployed owner/contract configuration.
+The legacy TetherToken test fixture is preserved unchanged. OpenZeppelin MIT license and source notices are retained. Historical owner-only contract source files are kept for reference; the v2 frontend accepts only SharedUSDTBatch bytecode.

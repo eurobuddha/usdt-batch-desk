@@ -1,5 +1,5 @@
 import { copyFileSync, existsSync } from 'node:fs';
 if (!existsSync('config.local.json')) {
   copyFileSync('config.example.json', 'config.local.json');
-  console.log('Created private config.local.json. Set your owner, contract, and runtimeCodeHash before using a wallet.');
+  console.log('Created private config.local.json. Optionally set a shared contract address for the site. No wallet is hardcoded.');
 }

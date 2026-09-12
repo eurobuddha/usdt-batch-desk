@@ -1,10 +1,8 @@
 import { getAddress, parseUnits, formatUnits, keccak256, toUtf8Bytes, MaxUint256, ZeroAddress } from 'ethers';
 import config from '../config.local.json';
-export const CONTRACT = getAddress(config.contract || ZeroAddress);
+export const DEFAULT_CONTRACT = config.contract ? getAddress(config.contract) : '';
+export const CONTRACT = DEFAULT_CONTRACT || ZeroAddress;
 export const TOKEN = getAddress('0xdAC17F958D2ee523a2206206994597C13D831ec7');
-export const OWNER = getAddress(config.owner || ZeroAddress);
-export const CODE_HASH = config.runtimeCodeHash || '0x' + '0'.repeat(64);
-export const CONFIGURED = CONTRACT !== ZeroAddress && OWNER !== ZeroAddress && /^0x[0-9a-fA-F]{64}$/.test(CODE_HASH) && CODE_HASH !== '0x' + '0'.repeat(64);
 export type Row = { address: string; amount: string };
 export type Batch = { rows: Row[]; addresses: string[]; amounts: bigint[]; total: bigint; fingerprint: string; duplicates: string[] };
 export function amountUnits(value: string): bigint {
@@ -14,7 +12,7 @@ export function amountUnits(value: string): bigint {
   return amount;
 }
 export const usdt = (value: bigint) => formatUnits(value, 6);
-export function validateBatch(rows: Row[]): Batch {
+export function validateBatch(rows: Row[], contract = CONTRACT, sender = ZeroAddress): Batch {
   if (!rows.length) throw new Error('Add at least one recipient.');
   if (rows.length > 500) throw new Error('Use at most 500 recipients per batch, then check the gas estimate.');
   const seen = new Set<string>(), duplicates = new Set<string>();
@@ -22,7 +20,7 @@ export function validateBatch(rows: Row[]): Batch {
   const normalized = rows.map((row, index) => {
     let address: string, amount: bigint;
     try { address = getAddress(row.address.trim()); } catch { throw new Error(`Row ${index + 1}: enter a valid Ethereum address (including its checksum).`); }
-    if ([ZeroAddress, CONTRACT, TOKEN, OWNER].includes(address)) throw new Error(`Row ${index + 1}: this destination is not permitted by your contract.`);
+    if ([ZeroAddress, getAddress(contract || ZeroAddress), TOKEN, getAddress(sender || ZeroAddress)].includes(address)) throw new Error(`Row ${index + 1}: this destination is not permitted by your contract.`);
     try { amount = amountUnits(row.amount); } catch (error) { throw new Error(`Row ${index + 1}: ${(error as Error).message}`); }
     total += amount;
     if (total > MaxUint256) throw new Error('Batch total exceeds the supported range.');
@@ -33,7 +31,7 @@ export function validateBatch(rows: Row[]): Batch {
   // Sorted canonical rows detect the same payment list even if its order changes.
   const canonical = normalized.map(r=>`${r.address.toLowerCase()}:${r.amount}`).sort();
   return {rows:normalized, addresses:normalized.map(r=>r.address), amounts:normalized.map(r=>amountUnits(r.amount)), total,
-    fingerprint:keccak256(toUtf8Bytes(`1:${CONTRACT}:${TOKEN}:${canonical.join('|')}`)),duplicates:[...duplicates]};
+    fingerprint:keccak256(toUtf8Bytes(`1:${contract.toLowerCase()}:${sender.toLowerCase()}:${TOKEN}:${canonical.join('|')}`)),duplicates:[...duplicates]};
 }
 export function parseRows(text: string): Row[] {
   if (text.length > 200000) throw new Error('The import is too large. Limit each batch to 500 recipients.');

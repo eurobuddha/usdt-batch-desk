@@ -1,0 +1,21 @@
+{
+  "name": "shared-usdt-batch",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "export": "hardhat run scripts/export-shared.js"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "2.1.0",
+    "@nomicfoundation/hardhat-ethers": "3.1.2",
+    "@openzeppelin/contracts": "5.4.0",
+    "chai": "4.5.0",
+    "ethers": "6.16.0",
+    "hardhat": "2.27.2",
+    "solc": "0.8.26",
+    "solc-legacy": "npm:solc@0.4.25"
+  },
+  "type": "commonjs"
+}

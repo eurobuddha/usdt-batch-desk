@@ -1,78 +1,68 @@
 # USDT Batch Desk
 
-A local browser app for owner-only USDT batch payments on Ethereum mainnet. Runs in Chrome with MetaMask and a Ledger account. No hosted website or cloud account is required.
+A public-site-ready USDT batch sender for Ethereum mainnet. **One shared contract, any connected wallet.** Each sender approves the contract from their own wallet and pays only from their own balance. The site operator does not control visitor funds.
 
-## Features
+## Version 2
 
-- Editable recipient rows, pasted lists, and CSV import/export.
-- Exact six-decimal amounts, checksummed addresses, and total validation.
-- USDT's zero-first allowance reset; approve only the required total.
-- Full recipient review, gas estimation, and Ledger signing through MetaMask.
-- On-chain owner, token, network, and deployed bytecode verification before preparing transactions.
-- Browser-local drafts, transaction history, duplicate warnings, and pending-request recovery.
-- A macOS double-click launcher that serves bundled static files on `127.0.0.1:38761`.
+`SharedUSDTBatch` has no owner, administrator, allowlist, or privileged withdrawal. Every transfer uses `safeTransferFrom(msg.sender, recipient, amount)`. Any wallet can call it through this frontend, another frontend, or directly. Existing owner-only deployments cannot be upgraded into this contract; deploy the replacement once. The previous contract sources remain under `contracts/PersonalUSDTBatch*` for historical reference only.
 
-## Local setup
+The frontend follows the selected MetaMask account, shows that sender in payment review, and isolates history and repeat-payment checks by wallet and contract. Changing accounts clears the prepared review and refreshes balances and allowances. Ledger accounts work through MetaMask; hardware signing is not required for other wallet types.
 
-Requires Node.js 22.13+ and npm to build the interface. Building the native Mac app also requires Xcode command-line tools. The finished app needs macOS 13+, Google Chrome, and MetaMask. It supports Apple Silicon and Intel Macs, and runs without Node, Python, or a Terminal window. Signing stays in MetaMask and your Ledger.
+## Run or host your own site
 
 ```sh
 npm ci
-npm run prebuild
+npm run build
 ```
 
-Edit the newly created **`config.local.json`**:
+Serve the contents of **`dist/client/`** from any static HTTPS host at the domain root. There is no application server, database, analytics, or private API key. MetaMask provides Ethereum RPC and signing. HTTPS (or localhost) is required for wallet and transaction-locking browser APIs.
 
-| Setting | Value |
-| --- | --- |
-| `owner` | The Ethereum address that owns your batch contract |
-| `contract` | Your deployed `PersonalUSDTBatch` address |
-| `runtimeCodeHash` | Keccak-256 of the contract's deployed runtime bytecode, including metadata |
+1. Open the app and connect the account that will pay the one-time deployment gas fee.
+2. Under **Choose the shared contract**, select **Review deployment cost**, inspect the fee, and continue to MetaMask. Sign there. No ETH is transferred to the contract; only gas is paid.
+3. The app verifies the confirmed deployed bytecode and saves the shared address. Interrupted requests remain recoverable; check or recover an unfinished deployment before trying again.
+4. Click **Download settings for your public site**. Put the resulting **`batch-config.json`** at the root of your static site, replacing the empty file supplied with the build. No rebuild is needed.
+5. Visitors now see the configured contract. They connect their own wallet, enter recipients, approve the batch total, review, and send. They do not deploy a contract and do not need your permission.
 
-Use a deployment you have independently verified. Runtime bytecode can be read with Ethereum `eth_getCode`; hash those bytes with ethers `keccak256`. This pins the complete deployed code and is separate from the deployment transaction hash. No secret, seed phrase, private key, password, or API token belongs in this configuration. Empty configuration disables wallet connection and transaction preparation.
+You can also enter an existing deployment of the exact included `SharedUSDTBatch` build under **Shared contract settings**, use `?contract=0x…` in a link, or set the default `contract` in ignored `config.local.json` before building. The app verifies the complete runtime hash; an arbitrary contract address cannot bypass verification.
+
+## Contract behavior
+
+- USDT on Ethereum mainnet, six-decimal integer amounts, no contract fee.
+- Exact-amount approvals, zero-first USDT allowance reset when needed, and revoke control for the connected sender.
+- Direct wallet-to-recipient transfers. A failed transfer or underpayment reverts the entire batch.
+- Rejects empty/mismatched arrays, zero amounts, and zero/sender/contract/token destinations. Duplicate recipients are paid once per row and require explicit frontend acknowledgement.
+- No batch ID deduplication on-chain. The browser warns about previously confirmed lists for the same wallet and contract; other apps, origins, or cleared storage have separate history.
+- No deposit function or recovery administrator. Do not transfer tokens directly to the batch contract; mistakenly deposited tokens cannot be recovered by this contract.
+
+## Native Mac app
 
 ```sh
-npm run build
 bash scripts/build-macos.sh
 ```
 
-Open **`release/USDT Batch Desk.dmg`**, drag **USDT Batch Desk** into Applications, then open it. The native app starts a loopback-only static server and opens Chrome. Quit the app with Command-Q to stop its server. Closing the small launcher window leaves the server running; click its Dock icon to reopen Chrome.
+Open `release/USDT Batch Desk.dmg`, drag the app into Applications, and launch it. macOS 13+; Apple Silicon and Intel; Chrome with MetaMask. It bundles the same interface, runs without Node/Python/Terminal, and opens `http://127.0.0.1:38762/`. Version 2 uses its own local origin so it cannot silently reuse the old owner-only server. Old version history stays in its original browser origin.
 
-The build is locally ad-hoc signed, not Apple-notarized. To distribute your own installer broadly, use your Developer ID and Apple's notarization process. Configured installers embed your wallet/deployment settings; keep them private if you do not want that association published.
+The installer is ad-hoc signed, not Apple-notarized. Signing for public distribution requires your own Developer ID and notarization. The optional Python fallback is available through `npm run package:local`.
 
-The optional Python fallback remains available through `npm run package:local` and `launcher/Launch USDT Batch Desk.command`. If an earlier launcher is running, the native app reuses that session. Stop the old launcher once and reopen the native app to transfer server ownership.
+## Source and verification
 
-Internet is still needed for MetaMask's Ethereum RPC requests and transaction broadcast. The local server only serves files; it receives no recipient lists and cannot sign transactions.
-
-## Payment flow
-
-1. Connect the owner account in MetaMask on Ethereum mainnet.
-2. Enter or import recipients and amounts, then inspect the total.
-3. Reset an existing insufficient nonzero allowance when required, then approve the exact batch total.
-4. Review every destination and the fee estimate, then request the batch transaction in MetaMask and sign on the Ledger.
-5. Wait for confirmation in transaction history. Resolve an unfinished request before retrying.
-
-Each batch is atomic: if one transfer fails, the whole batch reverts. ETH is needed for gas. Repeated recipient rows make separate payments and require acknowledgement. Previously confirmed lists trigger a repeat-payment warning.
-
-## Source layout
-
-- `app/`: frontend and styles.
-- `lib/`: validation, ABI, wallet checks, and history.
-- `launcher/`: Python local server and macOS launcher.
-- `macos/`: native Swift app, loopback HTTP server, and icon generator.
-- `scripts/`: configuration and local packaging helpers.
-- `contracts/`: Solidity source and standalone flattened source; Solidity 0.8.26, optimizer 200 runs, EVM Paris, OpenZeppelin 5.4.0.
-- `tests/`: unit tests for validation, transaction construction, and receipt recovery.
-
-The repository is configuration-free. `config.local.json`, generated bundles, payment exports, environment files, private hosting metadata, and logs are ignored. A configured build embeds public wallet/deployment settings; **do not commit or publicly upload that build** if you want to keep the association private.
-
-## Checks
+- `contracts/SharedUSDTBatch.sol`: readable contract source.
+- `contracts/SharedUSDTBatch.standalone.sol` and `.standard-input.json`: standalone and exact compiler input.
+- `lib/contract-build.json`: deployment bytecode, runtime, ABI and expected hash. Contains no wallet or deployed address.
+- `chain/`: reproducible Solidity 0.8.26 / optimizer 200 / EVM Paris build and tests, OpenZeppelin 5.4.0, plus the unchanged legacy Tether source as a local fixture.
+- `lib/`, `app/`, `components/contract-setup.tsx`: frontend, wallet/history checks, and deployment flow.
+- `macos/`, `scripts/`, `launcher/`: native packaging and optional local server.
 
 ```sh
 npm test
 npm run typecheck
 npm run build
-python3 tests/native-server.py /path/to/USDTBatchDesk dist/client
+cd chain
+npm ci
+npm test
+npm run export
 ```
 
-This app is not independently audited. Browser-local history cannot detect payments made through another app, browser, or cleared storage. The smart contract does not enforce unique batch IDs. Check wallet activity before repeating an uncertain payment. Drafts and history belong to the fixed localhost origin and are separate from other website origins.
+Contract tests execute only on a local VM. Integration tests exercise the exact deployment bytes embedded in the frontend. This is not an independent security audit. Production deployment and payments always require the wallet holder's signature.
+
+Private configuration, generated builds, payment exports and old private history are excluded from Git. Publishing a site with a shared contract necessarily publishes that contract address, but does not expose wallet keys.
